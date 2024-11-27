@@ -28,10 +28,19 @@ const productsAll = productsFromServer.map(product => {
 
 export const App = () => {
   const [activeUser, setActiveUser] = useState(null);
+  const [query, setQuery] = useState('');
+
+  const handleQueryChange = event => {
+    setQuery(event.target.value);
+  };
 
   const filteredProducts = activeUser
     ? productsAll.filter(product => product.user === activeUser)
     : productsAll;
+
+  const filteredByQuery = filteredProducts.filter(product =>
+    product.name.toLowerCase().includes(query.toLowerCase()),
+  );
 
   return (
     <div className="section">
@@ -75,22 +84,25 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
-                  onChange={() => {}}
+                  value={query}
+                  onChange={handleQueryChange}
                 />
 
                 <span className="icon is-left">
                   <i className="fas fa-search" aria-hidden="true" />
                 </span>
 
-                <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
-                </span>
+                {query !== '' && (
+                  <span className="icon is-right">
+                    {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setQuery('')}
+                    />
+                  </span>
+                )}
               </p>
             </div>
 
@@ -197,7 +209,7 @@ export const App = () => {
             </thead>
 
             <tbody>
-              {filteredProducts.map(product => (
+              {filteredByQuery.map(product => (
                 <tr data-cy="Product" key={product.id}>
                   <td className="has-text-weight-bold" data-cy="ProductId">
                     {product.id}
