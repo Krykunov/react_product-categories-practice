@@ -1,4 +1,5 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
+/* eslint-disable indent */
 
 import cn from 'classnames';
 
@@ -31,6 +32,7 @@ const productsAll = productsFromServer.map(product => {
 export const App = () => {
   const [activeUser, setActiveUser] = useState(null);
   const [query, setQuery] = useState('');
+  const [activeCategories, setActiveCategories] = useState([]);
 
   const handleQueryChange = event => {
     setQuery(event.target.value);
@@ -39,6 +41,17 @@ export const App = () => {
   const handleClearFilters = () => {
     setActiveUser(null);
     setQuery('');
+    setActiveCategories([]);
+  };
+
+  const handleSelectCategory = cat => {
+    setActiveCategories(prevCats => {
+      if (prevCats.includes(cat)) {
+        return prevCats.filter(item => item !== cat);
+      }
+
+      return [...prevCats, cat];
+    });
   };
 
   const filteredProducts = activeUser
@@ -49,6 +62,14 @@ export const App = () => {
     product => product.name.toLowerCase().includes(query.toLowerCase()),
     /* eslint-disable comma-dangle */
   );
+
+  const filteredByCategory =
+    activeCategories.length !== 0
+      ? filteredByQuery.filter(
+          product => activeCategories.includes(product.categoryName),
+          /* eslint-disable comma-dangle */
+        )
+      : filteredByQuery;
 
   return (
     <div className="section">
@@ -119,32 +140,24 @@ export const App = () => {
                 href="#/"
                 data-cy="AllCategories"
                 className="button is-success mr-6 is-outlined"
+                onClick={() => setActiveCategories([])}
               >
                 All
               </a>
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
-
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 4
-              </a>
+              {categoriesFromServer.map(category => (
+                <a
+                  key={category.id}
+                  data-cy="Category"
+                  className={cn('button mr-2 my-1', {
+                    'is-info': activeCategories.includes(category.title),
+                  })}
+                  href="#/"
+                  onClick={() => handleSelectCategory(category.title)}
+                >
+                  {category.title}
+                </a>
+              ))}
             </div>
 
             <div className="panel-block">
@@ -215,7 +228,7 @@ export const App = () => {
               </thead>
 
               <tbody>
-                {filteredByQuery.map(product => (
+                {filteredByCategory.map(product => (
                   <tr data-cy="Product" key={product.id}>
                     <td className="has-text-weight-bold" data-cy="ProductId">
                       {product.id}
