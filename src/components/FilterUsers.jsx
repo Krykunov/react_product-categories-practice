@@ -17,9 +17,9 @@ const FilterUsers = ({ activeUser, handleSetUser }) => {
       </a>
       {usersFromServer.map(user => (
         <a
+          href="#/"
           key={user.id}
           data-cy="FilterUser"
-          href="#/"
           className={cn({
             'is-active': user.name === activeUser,
           })}

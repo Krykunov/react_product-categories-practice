@@ -1,6 +1,9 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { useSearchParams } from 'react-router-dom';
+
 import './App.scss';
 
 import usersFromServer from './api/users';
@@ -20,11 +23,23 @@ const productsFull = getProducts(
 const columns = ['ID', 'Product', 'Category', 'User'];
 
 export const App = () => {
-  const [activeUser, setActiveUser] = useState('all');
-  const [query, setQuery] = useState('');
-  const [activeCategories, setActiveCategories] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const getSearchParam = (param, defaultValue) =>
+    searchParams.get(param) ?? defaultValue;
+
+  const [activeUser, setActiveUser] = useState(getSearchParam('user', 'all'));
+  const [query, setQuery] = useState(getSearchParam('query', ''));
+  const [activeCategories, setActiveCategories] = useState(
+    getSearchParam('categories', '').split('-').filter(Boolean),
+  );
   const [sortBy, setSortBy] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
+
+  useEffect(() => {
+    setSearchParams(
+      `?user=${activeUser}&query=${query}&categories=${activeCategories.join('-')}`,
+    );
+  }, [activeUser, query, activeCategories, searchParams, setSearchParams]);
 
   const preparedProducts = filterProducts(productsFull, {
     user: activeUser,
