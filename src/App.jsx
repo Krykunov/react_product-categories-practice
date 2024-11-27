@@ -139,7 +139,9 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
+                className={cn('button is-success mr-6', {
+                  'is-outlined': activeCategories.length !== 0,
+                })}
                 onClick={() => setActiveCategories([])}
               >
                 All
