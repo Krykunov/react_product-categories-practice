@@ -29,7 +29,7 @@ const productsAll = productsFromServer.map(product => {
 });
 
 const filterProducts = (products, params) => {
-  const { user, query, categories } = params;
+  const { user, query, categories, sortBy, sortOrder } = params;
 
   const filteredProducts = products
     .filter(product => product.name.toLowerCase().includes(query.toLowerCase()))
@@ -43,20 +43,82 @@ const filterProducts = (products, params) => {
       if (categories.length === 0) return true;
 
       return categories.includes(product.categoryName);
+    })
+    .toSorted((product1, product2) => {
+      switch (sortBy) {
+        case 'ID': {
+          if (sortOrder === 'asc') {
+            return product1.id - product2.id;
+          }
+
+          if (sortOrder === 'desc') {
+            return product2.id - product1.id;
+          }
+
+          break;
+        }
+
+        case 'Product': {
+          if (sortOrder === 'asc') {
+            return product1.name.localeCompare(product2.name);
+          }
+
+          if (sortOrder === 'desc') {
+            return product2.name.localeCompare(product1.name);
+          }
+
+          break;
+        }
+
+        case 'Category': {
+          if (sortOrder === 'asc') {
+            return product1.categoryName.localeCompare(product2.categoryName);
+          }
+
+          if (sortOrder === 'desc') {
+            return product2.categoryName.localeCompare(product1.categoryName);
+          }
+
+          break;
+        }
+
+        case 'User': {
+          if (sortOrder === 'asc') {
+            return product1.user.localeCompare(product2.user);
+          }
+
+          if (sortOrder === 'desc') {
+            return product2.user.localeCompare(product1.user);
+          }
+
+          break;
+        }
+
+        default:
+          return 0;
+      }
+
+      return 0;
     });
 
   return filteredProducts;
 };
 
+const columns = ['ID', 'Product', 'Category', 'User'];
+
 export const App = () => {
   const [activeUser, setActiveUser] = useState('all');
   const [query, setQuery] = useState('');
   const [activeCategories, setActiveCategories] = useState([]);
+  const [sortBy, setSortBy] = useState(null);
+  const [sortOrder, setSortOrder] = useState(null);
 
   const preparedProducts = filterProducts(productsAll, {
     user: activeUser,
     query,
     categories: activeCategories,
+    sortBy,
+    sortOrder,
   });
 
   const handleQueryChange = event => {
@@ -77,6 +139,22 @@ export const App = () => {
 
       return [...prevCats, cat];
     });
+  };
+
+  const handleClickSort = param => {
+    setSortBy(param);
+
+    if (param === sortBy) {
+      setSortOrder(prevOrder => {
+        if (prevOrder === null) return 'asc';
+
+        if (prevOrder === 'asc') return 'desc';
+
+        return null;
+      });
+    } else {
+      setSortOrder('asc');
+    }
   };
 
   return (
@@ -191,49 +269,31 @@ export const App = () => {
             >
               <thead>
                 <tr>
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      ID
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      Product
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-down" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      Category
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-up" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      User
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
+                  {columns.map(column => (
+                    <th key={column}>
+                      <span className="is-flex is-flex-wrap-nowrap">
+                        {column}
+                        <a href="#/">
+                          <button
+                            type="button"
+                            className="icon"
+                            onClick={() => handleClickSort(column)}
+                          >
+                            <i
+                              data-cy="SortIcon"
+                              className={cn('fas', {
+                                'fa-sort': sortBy !== column || !sortOrder,
+                                'fa-sort-up':
+                                  sortBy === column && sortOrder === 'asc',
+                                'fa-sort-down':
+                                  sortBy === column && sortOrder === 'desc',
+                              })}
+                            />
+                          </button>
+                        </a>
+                      </span>
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
