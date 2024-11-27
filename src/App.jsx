@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
 /* eslint-disable indent */
+/* eslint-disable comma-dangle */
 
 import cn from 'classnames';
 
@@ -27,19 +28,43 @@ const productsAll = productsFromServer.map(product => {
   };
 });
 
-// const filteredProducts = (products, params) => {};
+const filterProducts = (products, params) => {
+  const { user, query, categories } = params;
+
+  const filteredProducts = products
+    .filter(product => product.name.toLowerCase().includes(query.toLowerCase()))
+    .filter(product => {
+      if (user === 'all') return true;
+
+      return product.user === user;
+    })
+
+    .filter(product => {
+      if (categories.length === 0) return true;
+
+      return categories.includes(product.categoryName);
+    });
+
+  return filteredProducts;
+};
 
 export const App = () => {
-  const [activeUser, setActiveUser] = useState(null);
+  const [activeUser, setActiveUser] = useState('all');
   const [query, setQuery] = useState('');
   const [activeCategories, setActiveCategories] = useState([]);
+
+  const preparedProducts = filterProducts(productsAll, {
+    user: activeUser,
+    query,
+    categories: activeCategories,
+  });
 
   const handleQueryChange = event => {
     setQuery(event.target.value);
   };
 
   const handleClearFilters = () => {
-    setActiveUser(null);
+    setActiveUser('all');
     setQuery('');
     setActiveCategories([]);
   };
@@ -53,23 +78,6 @@ export const App = () => {
       return [...prevCats, cat];
     });
   };
-
-  const filteredProducts = activeUser
-    ? productsAll.filter(product => product.user === activeUser)
-    : productsAll;
-
-  const filteredByQuery = filteredProducts.filter(
-    product => product.name.toLowerCase().includes(query.toLowerCase()),
-    /* eslint-disable comma-dangle */
-  );
-
-  const filteredByCategory =
-    activeCategories.length !== 0
-      ? filteredByQuery.filter(
-          product => activeCategories.includes(product.categoryName),
-          /* eslint-disable comma-dangle */
-        )
-      : filteredByQuery;
 
   return (
     <div className="section">
@@ -85,9 +93,9 @@ export const App = () => {
                 data-cy="FilterAllUsers"
                 href="#/"
                 className={cn({
-                  'is-active': !activeUser,
+                  'is-active': activeUser === 'all',
                 })}
-                onClick={() => setActiveUser(null)}
+                onClick={() => setActiveUser('all')}
               >
                 All
               </a>
@@ -176,7 +184,7 @@ export const App = () => {
         </div>
 
         <div className="box table-container">
-          {filteredByQuery.length !== 0 ? (
+          {preparedProducts.length !== 0 ? (
             <table
               data-cy="ProductTable"
               className="table is-striped is-narrow is-fullwidth"
@@ -230,7 +238,7 @@ export const App = () => {
               </thead>
 
               <tbody>
-                {filteredByCategory.map(product => (
+                {preparedProducts.map(product => (
                   <tr data-cy="Product" key={product.id}>
                     <td className="has-text-weight-bold" data-cy="ProductId">
                       {product.id}
